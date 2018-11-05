@@ -42,7 +42,7 @@ public class Parser {
         return expr;
     }
 
-    Expr equality() {
+    private Expr equality() {
         Expr expr = comparison();
 
         while(match(BANG_EQUAL, EQUAL_EQUAL)) {
@@ -210,8 +210,24 @@ public class Parser {
     private Stmt statement() {
         if(match(PRINT)) return printStmt();
         if(match(LEFT_BRACE)) return new Stmt.Block(block());
+        if(match(IF)) return ifStatement();
 
         return exprStmt();
+    }
+
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "Expecting ( after if.");
+
+        Expr expr = expression();
+
+        consume(RIGHT_PAREN, "Expecting ) after if condition.");
+        Stmt thenStatement = statement();
+        Stmt elseStatement = null;
+        if(match(ELSE)) {
+            elseStatement = statement();
+        }
+
+        return new Stmt.If(expr, thenStatement, elseStatement);
     }
 
     private List<Stmt> block() {

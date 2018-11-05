@@ -162,6 +162,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    public Void visitIfStmt(Stmt.If ifStmt) {
+        Object value = evaluate(ifStmt.condition);
+
+        if(isTruthy(value)) {
+            execute(ifStmt.thenBranch);
+        }
+        else if(ifStmt.elseBranch != null) {
+            execute(ifStmt.elseBranch);
+        }
+
+        return null;
+    }
+
     private void executeBlock(List<Stmt> stmts, Environment environment) {
         Environment previous = this.environment;
 
