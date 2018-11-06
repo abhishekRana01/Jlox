@@ -1,14 +1,16 @@
 package Jlox;
+import java.util.List;
 
 abstract class Expr {
 
     interface Visitor<R> {
-        R visitBinaryExpr(Binary binary);
-        R visitUnaryExpr(Unary unary);
-        R visitGroupingExpr(Grouping grouping);
-        R visitLiteralExpr(Literal literal);
-        R visitVariableExpr(Variable variable);
-        R visitAssignExpr(Assign assign);
+        R visitBinaryExpr(Binary binaryExpr);
+        R visitUnaryExpr(Unary unaryExpr);
+        R visitGroupingExpr(Grouping groupingExpr);
+        R visitLiteralExpr(Literal literalExpr);
+        R visitVariableExpr(Variable variableExpr);
+        R visitAssignExpr(Assign assignExpr);
+        R visitLogicalExpr(Logical logicalExpr);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -90,6 +92,22 @@ abstract class Expr {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitAssignExpr(this);
+        }
+    }
+
+    static class Logical extends Expr {
+        Logical(Expr left, Token operator, Expr right) {
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
+        }
+
+        final Expr left;
+        final Token operator;
+        final Expr right;
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitLogicalExpr(this);
         }
     }
 }

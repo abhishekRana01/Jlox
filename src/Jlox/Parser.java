@@ -5,16 +5,16 @@ import java.util.List;
 
 import static Jlox.TokenType.*;
 
-public class Parser {
+class Parser {
     List<Token> tokens;
     private int current = 0;
 
     Parser(List<Token> tokens) {
         this.tokens = tokens;
 
-        for(Token token : tokens) {
+//        for(Token token : tokens) {
 //            System.out.println(token + " have it your way");
-        }
+//        }
 
     }
 
@@ -25,7 +25,7 @@ public class Parser {
     }
 
     private Expr assignment() {
-        Expr expr = equality();
+        Expr expr = logicOr();
 
         if(match(EQUAL)) {
             Token equals = previous();
@@ -37,6 +37,30 @@ public class Parser {
             }
 
             error(equals, "Invaid assignment ");
+        }
+
+        return expr;
+    }
+
+    private Expr logicOr() {
+        Expr expr = logicAnd();
+
+        while (match(OR)) {
+            Token operator = previous();
+            Expr right = logicAnd();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr logicAnd() {
+        Expr expr = equality();
+
+        while (match(AND)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Logical(expr, operator, right);
         }
 
         return expr;
@@ -211,16 +235,26 @@ public class Parser {
         if(match(PRINT)) return printStmt();
         if(match(LEFT_BRACE)) return new Stmt.Block(block());
         if(match(IF)) return ifStatement();
+        if(match(WHILE)) return whileStatement();
 
         return exprStmt();
     }
 
+    private Stmt whileStatement() {
+        consume(LEFT_PAREN, "Expecting ( after while.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expecting ) after while condition");
+
+        Stmt body = statement();
+
+        return new Stmt.While(condition, body);
+    }
+
     private Stmt ifStatement() {
         consume(LEFT_PAREN, "Expecting ( after if.");
-
         Expr expr = expression();
-
         consume(RIGHT_PAREN, "Expecting ) after if condition.");
+
         Stmt thenStatement = statement();
         Stmt elseStatement = null;
         if(match(ELSE)) {

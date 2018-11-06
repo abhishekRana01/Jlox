@@ -1,15 +1,15 @@
 package Jlox;
-
 import java.util.List;
 
 abstract class Stmt {
 
     interface Visitor<R> {
-        R visitPrintStmt(Print print);
-        R visitExpressionStmt(Expression expression);
-        R visitVarStmt(Var var);
-        R visitBlockStmt(Block block);
+        R visitPrintStmt(Print printStmt);
+        R visitExpressionStmt(Expression expressionStmt);
+        R visitVarStmt(Var varStmt);
+        R visitBlockStmt(Block blockStmt);
         R visitIfStmt(If ifStmt);
+        R visitWhileStmt(While whileStmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -77,6 +77,20 @@ abstract class Stmt {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitIfStmt(this);
+        }
+    }
+
+    static class While extends Stmt {
+        While(Expr condition, Stmt body) {
+            this.condition = condition;
+            this.body = body;
+        }
+
+        final Expr condition;
+        final Stmt body;
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitWhileStmt(this);
         }
     }
 }

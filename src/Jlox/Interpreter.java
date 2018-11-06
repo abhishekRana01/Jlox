@@ -44,6 +44,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return value;
     }
 
+    public Object visitLogicalExpr(Expr.Logical expr) {
+
+        Object left = evaluate(expr.left);
+        Object right = evaluate(expr.right);
+
+        switch (expr.operator.type) {
+            case OR:
+                if(isTruthy(left)) return left;
+            case AND:
+                if(!isTruthy(left)) return left;
+        }
+
+        return null;
+    }
+
     private void checkNumberOperand(Token token, Object operand) {
         if(operand instanceof Double) return;
         throw new RuntimeError(token, "Operand must be a number");
@@ -136,7 +151,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         Object value = evaluate(stmt.expression);
-        System.out.println("printing in visitExprStmnt" + stringify(value));
         return null;
     }
 
@@ -175,6 +189,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    public Void visitWhileStmt(Stmt.While stmt) {
+        Expr condition = stmt.condition;
+
+        while(isTruthy(evaluate(condition))) {
+            execute(stmt.body);
+        }
+
+        return null;
+    }
+
     private void executeBlock(List<Stmt> stmts, Environment environment) {
         Environment previous = this.environment;
 
@@ -194,9 +218,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     void  interpret(List<Stmt> stmts) {
         try {
-//            System.out.println("terminal_debug_ignore_interpreter.java");
             for(Stmt stmt : stmts) {
-//                System.out.println(stmt.getClass());
                 execute(stmt);
             }
         } catch (RuntimeError e) {

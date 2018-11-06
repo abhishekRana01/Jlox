@@ -21,7 +21,8 @@ public class GenerateAst {
             "Grouping : Expr expr",
             "Literal  : Object value",
             "Variable : Token name",
-            "Assign : Token name, Expr value"
+            "Assign   : Token name, Expr value",
+            "Logical  : Expr left, Token operator, Expr right"
         ));
 
         defineAst(outputDir, "Stmt", Arrays.asList(
@@ -29,7 +30,8 @@ public class GenerateAst {
                 "Expression : Expr expression",
                 "Var        : Token name, Expr initializer",
                 "Block      : List<Stmt> statements",
-                "If         : Expr condition, Stmt thenBranch, Stmt elseBranch"
+                "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
+                "While      : Expr condition, Stmt body"
         ));
 
     }
@@ -39,6 +41,7 @@ public class GenerateAst {
         PrintWriter printWriter = new PrintWriter(path, "UTF-8");
 
         printWriter.println("package Jlox;");
+        printWriter.println("import java.util.List;");
         printWriter.println();
         printWriter.println("abstract class "+ baseName + " {");
         printWriter.println();
@@ -64,7 +67,8 @@ public class GenerateAst {
 
         for(String type : types) {
             String typeName = type.split(":")[0].trim();
-            printWriter.println("        R visit" + typeName + basename + "(" + typeName + " " + typeName.toLowerCase() + ");");
+            printWriter.println("        R visit" + typeName + basename + "(" + typeName + " " +
+                    typeName.toLowerCase() + basename + ");");
         }
 
         printWriter.println("    }");
