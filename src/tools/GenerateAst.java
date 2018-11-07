@@ -22,7 +22,8 @@ public class GenerateAst {
             "Literal  : Object value",
             "Variable : Token name",
             "Assign   : Token name, Expr value",
-            "Logical  : Expr left, Token operator, Expr right"
+            "Logical  : Expr left, Token operator, Expr right",
+            "Call     : Expr callee, Token paren, List<Expr> arguments"
         ));
 
         defineAst(outputDir, "Stmt", Arrays.asList(
@@ -31,7 +32,8 @@ public class GenerateAst {
                 "Var        : Token name, Expr initializer",
                 "Block      : List<Stmt> statements",
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
-                "While      : Expr condition, Stmt body"
+                "While      : Expr condition, Stmt body",
+                "Fun        : Token name, List<Token> params, List<Stmt> body"
         ));
 
     }

@@ -1,6 +1,7 @@
 package Jlox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static Jlox.TokenType.*;
@@ -123,7 +124,47 @@ class Parser {
             return new Expr.Unary(operator, right);
         }
 
-        return primary();
+        return call();
+    }
+
+    private Expr call() {
+        Expr expr = primary();
+
+        while (true) {
+            if (match(LEFT_PAREN)) {
+                expr = finishCall(expr);
+            }
+            else break;
+        }
+
+        return expr;
+    }
+
+    private Expr finishCall(Expr callee) {
+        List<Expr> args = arguments();
+        if(!check(RIGHT_PAREN)) {
+            do {
+                if(args.size() >= 8) {
+                    error(peek(), "Cannot pass more than 8 args");
+                }
+                args.add(expression());
+            }
+            while (match(COMMA));
+        }
+
+        Token paren = consume(RIGHT_PAREN, "Expecting ) in function call");
+        return new Expr.Call(callee, paren, args);
+    }
+
+    private List<Expr> arguments() {
+        List<Expr> args = new ArrayList<>();
+        args.add(expression());
+
+        while(match(COMMA)) {
+            args.add(expression());
+        }
+
+        return args;
     }
 
     private Expr primary(){
@@ -236,8 +277,52 @@ class Parser {
         if(match(LEFT_BRACE)) return new Stmt.Block(block());
         if(match(IF)) return ifStatement();
         if(match(WHILE)) return whileStatement();
+        if(match(FOR)) return forStatement();
 
         return exprStmt();
+    }
+
+    private Stmt forStatement() {
+        consume(LEFT_PAREN, "Expecting ( after for.");
+        Stmt initializer;
+
+        if(match(SEMICOLON)) {
+            initializer = null;
+        }
+        else if(match(VAR)) {
+            initializer = varDeclaration();
+        }
+        else initializer = exprStmt();
+
+
+        Expr condition = null;
+        if(!check(SEMICOLON)) {
+            condition = expression();
+        }
+
+        consume(SEMICOLON, "Expecting ; in for after initializer");
+
+
+        Expr increment = null;
+        if(!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+
+        consume(RIGHT_PAREN, "Expecting ) at the end pf for loop.");
+        Stmt body = statement();
+
+        if(increment != null) {
+            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+        }
+
+        if(condition == null) condition = new Expr.Literal(true);
+        body = new Stmt.While(condition, body);
+
+        if(initializer != null) {
+            body = new Stmt.Block(Arrays.asList(initializer, body));
+        }
+
+        return body;
     }
 
     private Stmt whileStatement() {
@@ -293,7 +378,7 @@ class Parser {
     private Stmt declaration() {
         try {
             if(match(VAR)) return varDeclaration();
-
+            if(match(FUN)) return function("function");
             return statement();
 
         } catch (ParseError error) {
@@ -302,6 +387,29 @@ class Parser {
         }
 
     }
+
+    private Stmt function(String kind) {
+        Token name = consume(IDENTIFIER, "Expecting " + kind + "name.");
+        consume(LEFT_PAREN, "Expecting ( after function name");
+
+        List<Token> params = new ArrayList<>();
+
+        if(!check(RIGHT_PAREN)) {
+            do {
+                if(params.size() >= 8) {
+                    error(peek(), "Parameter count should be less than 8.");
+                }
+
+                params.add(consume(IDENTIFIER, "Expect parameter name."));
+            } while (match(COMMA));
+        }
+
+        consume(RIGHT_PAREN, "Expecting ) after parameters.");
+        List<Stmt> body = block();
+
+        return new Stmt.Fun(name, params, body);
+    }
+
 
     private Stmt varDeclaration() {
         Token name = consume(IDENTIFIER, "Expecting variable name.");

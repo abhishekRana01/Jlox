@@ -10,6 +10,7 @@ abstract class Stmt {
         R visitBlockStmt(Block blockStmt);
         R visitIfStmt(If ifStmt);
         R visitWhileStmt(While whileStmt);
+        R visitFunStmt(Fun funStmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -91,6 +92,22 @@ abstract class Stmt {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitWhileStmt(this);
+        }
+    }
+
+    static class Fun extends Stmt {
+        Fun(Token name, List<Token> params, List<Stmt> body) {
+            this.name = name;
+            this.params = params;
+            this.body = body;
+        }
+
+        final Token name;
+        final List<Token> params;
+        final List<Stmt> body;
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitFunStmt(this);
         }
     }
 }
