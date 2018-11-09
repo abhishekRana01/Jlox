@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    private Environment globals = new Environment();
+    Environment globals = new Environment();
     private Environment environment = globals;
 
     Interpreter() {
@@ -20,6 +20,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             public int arity() {
                 return 0;
             }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+
         });
     }
 
@@ -66,10 +72,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object right = evaluate(expr.right);
 
         switch (expr.operator.type) {
+
             case OR:
                 if(isTruthy(left)) return left;
+                if(isTruthy(right)) return right;
+                return left;
+
             case AND:
                 if(!isTruthy(left)) return left;
+                if(!isTruthy(right)) return right;
+                return right;
         }
 
         return null;
@@ -195,7 +207,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     public Void visitPrintStmt(Stmt.Print stmt) {
         Object value = evaluate(stmt.expression);
-        System.out.println("StopWierd in intrpereter.java");
+//        System.out.println("StopWierd in intrpereter.java");
         System.out.println(stringify(value));
         return null;
     }
@@ -238,7 +250,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
-    private void executeBlock(List<Stmt> stmts, Environment environment) {
+    public Void visitFunStmt(Stmt.Fun stmt) {
+        LoxFunction loxFunction = new LoxFunction(stmt, environment);
+        environment.define(stmt.name.lexeme, loxFunction);
+        return null;
+    }
+
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if(stmt.Value != null) value = evaluate(stmt.Value);
+
+        throw new Return(value);
+    }
+
+    public void executeBlock(List<Stmt> stmts, Environment environment) {
         Environment previous = this.environment;
 
         try {

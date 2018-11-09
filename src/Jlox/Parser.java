@@ -13,8 +13,9 @@ class Parser {
     Parser(List<Token> tokens) {
         this.tokens = tokens;
 
+//        System.out.println("Tokens are : ");
 //        for(Token token : tokens) {
-//            System.out.println(token + " have it your way");
+//            System.out.println(token);
 //        }
 
     }
@@ -132,6 +133,7 @@ class Parser {
 
         while (true) {
             if (match(LEFT_PAREN)) {
+                System.err.println("Inside finish call1");
                 expr = finishCall(expr);
             }
             else break;
@@ -141,7 +143,8 @@ class Parser {
     }
 
     private Expr finishCall(Expr callee) {
-        List<Expr> args = arguments();
+        List<Expr> args = new ArrayList<>();
+
         if(!check(RIGHT_PAREN)) {
             do {
                 if(args.size() >= 8) {
@@ -154,17 +157,6 @@ class Parser {
 
         Token paren = consume(RIGHT_PAREN, "Expecting ) in function call");
         return new Expr.Call(callee, paren, args);
-    }
-
-    private List<Expr> arguments() {
-        List<Expr> args = new ArrayList<>();
-        args.add(expression());
-
-        while(match(COMMA)) {
-            args.add(expression());
-        }
-
-        return args;
     }
 
     private Expr primary(){
@@ -278,8 +270,21 @@ class Parser {
         if(match(IF)) return ifStatement();
         if(match(WHILE)) return whileStatement();
         if(match(FOR)) return forStatement();
+        if(match(RETURN)) return returnStatement();
 
         return exprStmt();
+    }
+
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr  value   = null;
+
+        if(!check(SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "Expecting ; after return value.");
+        return new Stmt.Return(keyword, value);
     }
 
     private Stmt forStatement() {
@@ -357,7 +362,6 @@ class Parser {
         }
 
         consume(RIGHT_BRACE, "Expecting } after block");
-
         return stmts;
     }
 
@@ -400,11 +404,13 @@ class Parser {
                     error(peek(), "Parameter count should be less than 8.");
                 }
 
-                params.add(consume(IDENTIFIER, "Expect parameter name."));
+                params.add(consume(IDENTIFIER, "Expecting parameter name."));
             } while (match(COMMA));
         }
 
         consume(RIGHT_PAREN, "Expecting ) after parameters.");
+        consume(LEFT_BRACE, "Expecting { before " + kind + " body");
+
         List<Stmt> body = block();
 
         return new Stmt.Fun(name, params, body);
