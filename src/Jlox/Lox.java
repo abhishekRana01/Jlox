@@ -49,16 +49,18 @@ public class Lox {
     }
 
     private void run(String source) {
-        Scanner scanner = new Scanner(source);
-        List<Token> tokens = scanner.scanTokens();
+        Scanner scanner     =   new Scanner(source);
+        List<Token> tokens  =   scanner.scanTokens();
 
-        Parser parser = new Jlox.Parser(tokens);
-        List<Stmt> stmts = parser.parse();
+        Parser parser       =   new Jlox.Parser(tokens);
+        List<Stmt> stmts    =   parser.parse();
 
         if(hadError) return;
 
-//        System.out.println(new AstPrinter().print(expr));
+        Resolver resolver   =   new Resolver(interpreter);
+        resolver.resolve(stmts);
 
+        if(hadError) return;
         interpreter.interpret(stmts);
     }
 

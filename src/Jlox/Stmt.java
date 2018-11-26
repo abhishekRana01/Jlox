@@ -12,6 +12,7 @@ abstract class Stmt {
         R visitWhileStmt(While whileStmt);
         R visitFunStmt(Fun funStmt);
         R visitReturnStmt(Return returnStmt);
+        R visitClassStmt(Class classStmt);
     }
 
     abstract <R> R accept(Visitor<R> visitor);
@@ -123,6 +124,20 @@ abstract class Stmt {
 
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitReturnStmt(this);
+        }
+    }
+
+    static class Class extends Stmt {
+        Class(Token name, List<Stmt.Fun> methods) {
+            this.name = name;
+            this.methods = methods;
+        }
+
+        final Token name;
+        final List<Stmt.Fun> methods;
+
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassStmt(this);
         }
     }
 }

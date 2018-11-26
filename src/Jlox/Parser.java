@@ -31,14 +31,14 @@ class Parser {
 
         if(match(EQUAL)) {
             Token equals = previous();
-            Expr value = assignment();
+            Expr value   = assignment();
 
             if(expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
             }
 
-            error(equals, "Invaid assignment ");
+            error(equals, "Invalid assignment ");
         }
 
         return expr;
@@ -381,8 +381,10 @@ class Parser {
 
     private Stmt declaration() {
         try {
-            if(match(VAR)) return varDeclaration();
-            if(match(FUN)) return function("function");
+            if(match(VAR))   return varDeclaration();
+            if(match(FUN))   return function("function");
+            if(match(CLASS)) return classDeclaration();
+
             return statement();
 
         } catch (ParseError error) {
@@ -392,7 +394,21 @@ class Parser {
 
     }
 
-    private Stmt function(String kind) {
+    private Stmt classDeclaration() {
+        Token name = consume(IDENTIFIER, "Expecting class name.");
+        consume(LEFT_BRACE, "Expecting { after class name.");
+
+        List<Stmt.Fun> methods = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(RIGHT_BRACE, "Expecting } after class body.");
+        return new Stmt.Class(name, methods);
+    }
+
+    private Stmt.Fun function(String kind) {
         Token name = consume(IDENTIFIER, "Expecting " + kind + "name.");
         consume(LEFT_PAREN, "Expecting ( after function name");
 

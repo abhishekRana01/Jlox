@@ -2,6 +2,7 @@ package tools;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,14 +35,15 @@ public class GenerateAst {
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "While      : Expr condition, Stmt body",
                 "Fun        : Token name, List<Token> params, List<Stmt> body",
-                "Return     : Token keyword, Expr Value"
+                "Return     : Token keyword, Expr Value",
+                "Class      : Token name, List<Stmt.Fun> methods"
         ));
 
     }
 
     private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {
         String path = outputDir + "/" + baseName + ".java";
-        PrintWriter printWriter = new PrintWriter(path, "UTF-8");
+        PrintWriter printWriter = new PrintWriter(path, StandardCharsets.UTF_8);
 
         printWriter.println("package Jlox;");
         printWriter.println("import java.util.List;");
